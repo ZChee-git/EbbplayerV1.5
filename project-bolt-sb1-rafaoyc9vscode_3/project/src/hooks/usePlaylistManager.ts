@@ -22,8 +22,8 @@ export const usePlaylistManager = () => {
   const [collections, setCollections] = useState<Collection[]>([]);
   const [isLoading, setIsLoading] = useState(true);
 
-  // 新复习间隔：第2、4、7、15、30、90天
-  const REVIEW_INTERVALS = [2, 4, 7, 15, 30, 90];
+  // 新复习间隔：第1、4、7、15、30、90天（第一次复习为明天）
+  const REVIEW_INTERVALS = [1, 4, 7, 15, 30, 90];
   const MAX_NEW_PER_DAY = 4; // 每日新学习数量改为4集
   const MAX_REVIEW_PER_DAY = 600; // 每日最大复习数量，已由6改为600
 
