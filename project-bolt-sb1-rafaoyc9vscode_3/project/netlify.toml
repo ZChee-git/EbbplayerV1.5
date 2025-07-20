@@ -1,5 +1,4 @@
 [build]
-  base = "project-bolt-sb1-rafaoyc9vscode_3/project"
   publish = "dist"
   command = "npm run build"
 
