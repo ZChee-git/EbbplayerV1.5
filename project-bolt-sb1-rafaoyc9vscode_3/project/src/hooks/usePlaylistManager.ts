@@ -253,10 +253,10 @@ export const usePlaylistManager = () => {
       if (video.id === videoId) {
         const now = new Date();
         if (!video.firstPlayDate) {
-          // 第一次播放
+          // 第一次播放，自然日：次日0点
           const nextReviewDate = new Date(now);
           nextReviewDate.setDate(nextReviewDate.getDate() + REVIEW_INTERVALS[0]);
-          
+          nextReviewDate.setHours(0, 0, 0, 0); // 设为次日0点
           return {
             ...video,
             firstPlayDate: now,
