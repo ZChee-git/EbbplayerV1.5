@@ -1,0 +1,112 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Icon Generator</title>
+    <style>
+        body { font-family: Arial, sans-serif; margin: 20px; }
+        button { margin: 10px; padding: 10px 20px; background: #2563eb; color: white; border: none; border-radius: 5px; cursor: pointer; }
+        #status { margin: 20px 0; padding: 10px; background: #f0f0f0; border-radius: 5px; }
+        canvas { border: 1px solid #ccc; margin: 10px; }
+    </style>
+</head>
+<body>
+    <h1>PWA Icon Generator</h1>
+    <button onclick="generateIcons()">Generate Icons</button>
+    <button onclick="testExistingIcons()">Test Existing Icons</button>
+    <div id="status"></div>
+    <div id="canvas-container"></div>
+
+    <script>
+        function log(message) {
+            document.getElementById('status').innerHTML += message + '<br>';
+        }
+
+        function generateIcons() {
+            log('Starting icon generation...');
+            document.getElementById('status').innerHTML = '';
+            
+            generateIcon(192);
+            generateIcon(512);
+        }
+
+        function generateIcon(size) {
+            const canvas = document.createElement('canvas');
+            const ctx = canvas.getContext('2d');
+            
+            canvas.width = size;
+            canvas.height = size;
+            
+            // Background
+            ctx.fillStyle = '#2563eb';
+            ctx.fillRect(0, 0, size, size);
+            
+            // White rounded rectangle
+            const padding = size * 0.15;
+            const width = size - (padding * 2);
+            const height = size - (padding * 2);
+            const radius = size * 0.1;
+            
+            ctx.fillStyle = '#ffffff';
+            ctx.beginPath();
+            ctx.roundRect(padding, padding, width, height, radius);
+            ctx.fill();
+            
+            // Play button
+            ctx.fillStyle = '#2563eb';
+            ctx.beginPath();
+            const centerX = size / 2;
+            const centerY = size / 2;
+            const triangleSize = size * 0.1;
+            
+            ctx.moveTo(centerX - triangleSize * 0.5, centerY - triangleSize);
+            ctx.lineTo(centerX - triangleSize * 0.5, centerY + triangleSize);
+            ctx.lineTo(centerX + triangleSize, centerY);
+            ctx.closePath();
+            ctx.fill();
+            
+            // Add to page for preview
+            const container = document.getElementById('canvas-container');
+            canvas.style.border = '1px solid #ccc';
+            canvas.style.margin = '10px';
+            container.appendChild(canvas);
+            
+            // Convert to blob and download
+            canvas.toBlob(function(blob) {
+                if (blob) {
+                    const url = URL.createObjectURL(blob);
+                    const a = document.createElement('a');
+                    a.href = url;
+                    a.download = `icon-${size}.png`;
+                    document.body.appendChild(a);
+                    a.click();
+                    document.body.removeChild(a);
+                    URL.revokeObjectURL(url);
+                    log(`Generated icon-${size}.png`);
+                } else {
+                    log(`Failed to generate icon-${size}.png`);
+                }
+            }, 'image/png', 1.0);
+        }
+
+        async function testExistingIcons() {
+            log('Testing existing icons...');
+            
+            const icons = ['icon-192.png', 'icon-512.png'];
+            
+            for (const icon of icons) {
+                try {
+                    const response = await fetch(`/public/${icon}`);
+                    if (response.ok) {
+                        const blob = await response.blob();
+                        log(`${icon}: OK (${blob.size} bytes, ${blob.type})`);
+                    } else {
+                        log(`${icon}: Failed (${response.status})`);
+                    }
+                } catch (error) {
+                    log(`${icon}: Error - ${error.message}`);
+                }
+            }
+        }
+    </script>
+</body>
+</html>

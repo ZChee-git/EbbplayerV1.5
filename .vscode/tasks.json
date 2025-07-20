@@ -1,0 +1,15 @@
+{
+	"version": "2.0.0",
+	"tasks": [
+		{
+			"type": "shell",
+			"label": "PWA本地预览",
+			"command": "npm install; npm run dev",
+			"group": "build",
+			"isBackground": true,
+			"options": {
+				"cwd": "${workspaceFolder}/project-bolt-sb1-rafaoyc9vscode_3/project"
+			}
+		}
+	]
+}

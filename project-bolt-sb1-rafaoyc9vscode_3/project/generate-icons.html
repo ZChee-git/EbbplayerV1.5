@@ -1,0 +1,72 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Generate Icons</title>
+</head>
+<body>
+    <h1>图标生成器</h1>
+    <button onclick="generateIcons()">生成图标</button>
+    <div id="status"></div>
+    
+    <script>
+        function generateIcons() {
+            const statusDiv = document.getElementById('status');
+            statusDiv.innerHTML = '正在生成图标...';
+            
+            // 生成 192x192 图标
+            generateIcon(192, 'icon-192.png');
+            
+            // 生成 512x512 图标
+            generateIcon(512, 'icon-512.png');
+            
+            statusDiv.innerHTML = '图标生成完成！请检查下载文件夹。';
+        }
+        
+        function generateIcon(size, filename) {
+            const canvas = document.createElement('canvas');
+            const ctx = canvas.getContext('2d');
+            
+            canvas.width = size;
+            canvas.height = size;
+            
+            // 设置背景色
+            ctx.fillStyle = '#2563eb';
+            ctx.fillRect(0, 0, size, size);
+            
+            // 添加圆角矩形
+            const radius = size * 0.2;
+            ctx.fillStyle = '#ffffff';
+            ctx.beginPath();
+            ctx.roundRect(size * 0.2, size * 0.2, size * 0.6, size * 0.6, radius);
+            ctx.fill();
+            
+            // 添加播放按钮图标
+            ctx.fillStyle = '#2563eb';
+            ctx.beginPath();
+            const centerX = size / 2;
+            const centerY = size / 2;
+            const triangleSize = size * 0.15;
+            
+            ctx.moveTo(centerX - triangleSize * 0.5, centerY - triangleSize);
+            ctx.lineTo(centerX - triangleSize * 0.5, centerY + triangleSize);
+            ctx.lineTo(centerX + triangleSize, centerY);
+            ctx.closePath();
+            ctx.fill();
+            
+            // 转换为 blob 并下载
+            canvas.toBlob(function(blob) {
+                const url = URL.createObjectURL(blob);
+                const a = document.createElement('a');
+                a.href = url;
+                a.download = filename;
+                document.body.appendChild(a);
+                a.click();
+                document.body.removeChild(a);
+                URL.revokeObjectURL(url);
+            }, 'image/png');
+        }
+    </script>
+</body>
+</html>
