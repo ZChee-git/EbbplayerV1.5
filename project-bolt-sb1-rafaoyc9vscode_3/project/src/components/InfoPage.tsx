@@ -59,6 +59,17 @@ const InfoPage: React.FC<{ onBack: () => void }> = ({ onBack }) => {
           </div>
           <div>微信：搜索shangX</div>
           <div>电邮：zero14@qq.com</div>
+          <div style={{marginTop: '1em'}}>
+            详细使用说明点击以下链接<br />
+            <a
+              href="https://Ebbplayer-guide.netlify.app"
+              target="_blank"
+              rel="noopener noreferrer"
+              style={{ color: '#2563eb', textDecoration: 'underline' }}
+            >
+              https://Ebbplayer-guide.netlify.app
+            </a>
+          </div>
         </div>
         <button
           className="mt-4 px-6 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700"
