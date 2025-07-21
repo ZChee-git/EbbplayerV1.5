@@ -277,7 +277,11 @@ export const VideoPlayer: React.FC<VideoPlayerProps> = ({
                 onClick={showControlsTemporarily}
                 onTouchStart={showControlsTemporarily}
               >
-                <div className="text-center text-white p-8">
+                <div
+                  className="text-center text-white p-8"
+                  onClick={showControlsTemporarily}
+                  onTouchStart={showControlsTemporarily}
+                >
                   <div className="text-6xl mb-6">🎵</div>
                   <h2 className="text-2xl font-bold mb-2">{currentVideo.name}</h2>
                   <p className="text-yellow-200 mb-4">音频复习模式</p>
