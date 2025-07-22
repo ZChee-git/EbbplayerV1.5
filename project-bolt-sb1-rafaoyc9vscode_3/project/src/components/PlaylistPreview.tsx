@@ -122,9 +122,6 @@ export const PlaylistPreview: React.FC<PlaylistPreviewProps> = ({
             <Headphones className="text-yellow-600 mr-2" size={20} />
             <p className="text-yellow-800 font-medium">复习模式</p>
           </div>
-          <p className="text-yellow-700 text-sm mt-1">
-            支持音频或视频播放，可以在通勤、运动或专注时进行复习
-          </p>
         </div>
       )}
 
