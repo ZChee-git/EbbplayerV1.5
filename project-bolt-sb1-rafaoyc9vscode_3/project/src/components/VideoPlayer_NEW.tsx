@@ -288,7 +288,7 @@ export const VideoPlayer: React.FC<VideoPlayerProps> = ({
                   <p className="text-yellow-200 mb-4">音频复习模式</p>
                 </div>
                 {/* 音频模式下的工具栏，始终可见且不被遮挡 */}
-                {!videoError && showControls && (
+                {!videoError && (
                   <div className="absolute bottom-0 left-0 right-0 bg-black/80 p-6 z-20">
                     <div className="mb-6">
                       <input
