@@ -558,6 +558,7 @@ function App() {
 
       {/* Info Page Modal */}
       {showInfo && <InfoPage onBack={() => setShowInfo(false)} />}
+
     </div>
   );
 }

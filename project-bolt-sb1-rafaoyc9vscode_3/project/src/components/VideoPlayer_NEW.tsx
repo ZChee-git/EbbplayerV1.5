@@ -271,9 +271,10 @@ export const VideoPlayer: React.FC<VideoPlayerProps> = ({
             )}
             
             {/* 音频模式显示 */}
+
             {audioOnlyMode && (
               <div
-                className="w-full h-full bg-gradient-to-br from-yellow-900 to-yellow-700 flex items-center justify-center"
+                className="w-full h-full bg-gradient-to-br from-yellow-900 to-yellow-700 flex flex-col justify-center items-center relative"
                 onClick={showControlsTemporarily}
                 onTouchStart={showControlsTemporarily}
               >
@@ -286,6 +287,54 @@ export const VideoPlayer: React.FC<VideoPlayerProps> = ({
                   <h2 className="text-2xl font-bold mb-2">{currentVideo.name}</h2>
                   <p className="text-yellow-200 mb-4">音频复习模式</p>
                 </div>
+                {/* 音频模式下的工具栏，始终可见且不被遮挡 */}
+                {!videoError && showControls && (
+                  <div className="absolute bottom-0 left-0 right-0 bg-black/80 p-6 z-20">
+                    <div className="mb-6">
+                      <input
+                        type="range"
+                        min="0"
+                        max={duration || 0}
+                        value={currentTime}
+                        onChange={handleSeek}
+                        className="w-full h-2 bg-gray-600 rounded-lg appearance-none cursor-pointer slider"
+                      />
+                      <div className="flex justify-between text-white text-sm mt-2">
+                        <span>{formatTime(currentTime)}</span>
+                        <span>{formatTime(duration)}</span>
+                      </div>
+                    </div>
+                    <div className="flex items-center justify-center space-x-8">
+                      <button
+                        onClick={goToPrevious}
+                        disabled={currentIndex === 0}
+                        className="text-white p-4 rounded-full hover:bg-white/20 transition-all disabled:opacity-50 disabled:cursor-not-allowed"
+                      >
+                        <SkipBack size={54} />
+                      </button>
+                      <button
+                        onClick={togglePlay}
+                        className="bg-white/20 text-white p-6 rounded-full hover:bg-white/30 transition-all"
+                        disabled={isLoading}
+                      >
+                        {isPlaying ? <Pause size={60} /> : <Play size={60} />}
+                      </button>
+                      <button
+                        onClick={goToNext}
+                        disabled={currentIndex === playlist.length - 1}
+                        className="text-white p-4 rounded-full hover:bg-white/20 transition-all disabled:opacity-50 disabled:cursor-not-allowed"
+                      >
+                        <SkipForward size={54} />
+                      </button>
+                      <button
+                        onClick={onClose}
+                        className="text-white p-4 rounded-full hover:bg-white/20 transition-all"
+                      >
+                        <X size={54} />
+                      </button>
+                    </div>
+                  </div>
+                )}
               </div>
             )}
             
