@@ -350,7 +350,7 @@ function App() {
             className="text-xl text-gray-600 max-w-3xl mx-auto"
             style={{ fontFamily: "-apple-system, BlinkMacSystemFont, 'Segoe UI', 'PingFang SC', 'Hiragino Sans GB', 'Microsoft YaHei', Arial, sans-serif" }}
           >
-            无他，唯手熟尔。  ——北宋 · 欧阳修
+            根据艾宾浩斯遗忘曲线，规划出90天内的六次复习计划，助力高效学习。
           </p>
           <button
             className="absolute right-0 top-0 flex items-center justify-center bg-blue-500 hover:bg-blue-700 text-white rounded-full shadow transition-colors"
