@@ -240,10 +240,18 @@ export const VideoPlayer: React.FC<VideoPlayerProps> = ({
 
   // 控制栏自动隐藏逻辑
   const hideControlsAfterDelay = () => {
+    // 在音频模式下不自动隐藏工具栏，始终保持显示
+    if (audioOnlyMode) {
+      if (controlsTimeout) {
+        clearTimeout(controlsTimeout);
+      }
+      setShowControls(true);
+      return;
+    }
     if (controlsTimeout) {
       clearTimeout(controlsTimeout);
     }
-    const timeout = setTimeout(() => {
+    const timeout = window.setTimeout(() => {
       setShowControls(false);
     }, 3000); // 3秒后隐藏
     setControlsTimeout(timeout);
@@ -630,8 +638,16 @@ export const VideoPlayer: React.FC<VideoPlayerProps> = ({
             
             {/* 音频模式显示 */}
             {audioOnlyMode && (
-              <div className="w-full h-full bg-gradient-to-br from-yellow-900 to-yellow-700 flex items-center justify-center">
-                <div className="text-center text-white p-8">
+              <div
+                className="w-full h-full bg-gradient-to-br from-yellow-900 to-yellow-700 flex items-center justify-center"
+                onClick={showControlsTemporarily}
+                onTouchStart={showControlsTemporarily}
+              >
+                <div
+                  className="text-center text-white p-8"
+                  onClick={showControlsTemporarily}
+                  onTouchStart={showControlsTemporarily}
+                >
                   <div className="text-6xl mb-6">🎵</div>
                   <h2 className="text-2xl font-bold mb-2">{currentVideo.name}</h2>
                   <p className="text-yellow-200 mb-4">音频复习模式</p>
@@ -665,7 +681,7 @@ export const VideoPlayer: React.FC<VideoPlayerProps> = ({
         )}
         
         {/* Controls Overlay - 只在需要时显示 */}
-        {!videoError && showControls && (
+        {!videoError && (showControls || audioOnlyMode) && (
           <div className="absolute bottom-0 left-0 right-0 bg-gradient-to-t from-black/80 to-transparent p-6">
             {/* Progress Bar */}
             <div className="mb-6">

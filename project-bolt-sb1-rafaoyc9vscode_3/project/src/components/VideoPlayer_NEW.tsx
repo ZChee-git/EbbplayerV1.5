@@ -56,8 +56,13 @@ export const VideoPlayer: React.FC<VideoPlayerProps> = ({
     };
   }, []);
 
-  // 控制栏自动隐藏逻辑
+
+  // 控制栏自动隐藏逻辑（音频模式下不隐藏）
   const hideControlsAfterDelay = () => {
+    if (audioOnlyMode) {
+      setShowControls(true);
+      return;
+    }
     if (controlsTimeout) {
       clearTimeout(controlsTimeout);
     }
@@ -69,7 +74,9 @@ export const VideoPlayer: React.FC<VideoPlayerProps> = ({
 
   const showControlsTemporarily = () => {
     setShowControls(true);
-    hideControlsAfterDelay();
+    if (!audioOnlyMode) {
+      hideControlsAfterDelay();
+    }
   };
 
   // 视频加载和事件处理
@@ -315,7 +322,7 @@ export const VideoPlayer: React.FC<VideoPlayerProps> = ({
         )}
         
         {/* Controls Overlay - 只在需要时显示 */}
-        {!videoError && showControls && (
+        {!videoError && (showControls || audioOnlyMode) && (
           <div className="absolute bottom-0 left-0 right-0 bg-gradient-to-t from-black/80 to-transparent p-6">
             {/* Progress Bar */}
             <div className="mb-6">
