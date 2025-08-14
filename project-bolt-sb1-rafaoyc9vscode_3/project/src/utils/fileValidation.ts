@@ -18,8 +18,25 @@ export const SUPPORTED_VIDEO_FORMATS = {
   'mts': 'video/mp2t'
 };
 
+// 新增: 支持的音频格式
+export const SUPPORTED_AUDIO_FORMATS = {
+  'mp3': 'audio/mpeg',
+  'wav': 'audio/wav',
+  'm4a': 'audio/mp4',
+  'aac': 'audio/aac',
+  'ogg': 'audio/ogg',
+  'oga': 'audio/ogg',
+  'flac': 'audio/flac'
+};
+
+// 合并媒体格式（视频+音频）
+const ALL_SUPPORTED_EXTENSIONS: Record<string, string> = {
+  ...SUPPORTED_VIDEO_FORMATS,
+  ...SUPPORTED_AUDIO_FORMATS
+};
+
 /**
- * 验证文件是否为有效的视频文件
+ * 验证文件是否为有效的媒体文件（视频或音频）
  */
 export function validateVideoFile(file: File): {
   isValid: boolean;
@@ -35,7 +52,6 @@ export function validateVideoFile(file: File): {
     };
   }
 
-  // 检查文件大小
   if (file.size === 0) {
     return {
       isValid: false,
@@ -44,7 +60,6 @@ export function validateVideoFile(file: File): {
     };
   }
 
-  // 检查文件大小限制 (例如：最大 2GB)
   const maxSize = 2 * 1024 * 1024 * 1024; // 2GB
   if (file.size > maxSize) {
     return {
@@ -54,9 +69,7 @@ export function validateVideoFile(file: File): {
     };
   }
 
-  // 获取文件扩展名
   const extension = file.name.split('.').pop()?.toLowerCase();
-  
   if (!extension) {
     return {
       isValid: false,
@@ -65,8 +78,7 @@ export function validateVideoFile(file: File): {
     };
   }
 
-  // 检查是否为支持的格式
-  if (!(extension in SUPPORTED_VIDEO_FORMATS)) {
+  if (!(extension in ALL_SUPPORTED_EXTENSIONS)) {
     return {
       isValid: false,
       mimeType: '',
@@ -74,12 +86,12 @@ export function validateVideoFile(file: File): {
     };
   }
 
-  // 获取预期的MIME类型
-  const expectedMimeType = SUPPORTED_VIDEO_FORMATS[extension as keyof typeof SUPPORTED_VIDEO_FORMATS];
-  
-  // 如果浏览器提供了MIME类型，验证是否匹配
+  const expectedMimeType = ALL_SUPPORTED_EXTENSIONS[extension];
+
   if (file.type) {
-    if (!file.type.startsWith('video/')) {
+    const isVideo = file.type.startsWith('video/');
+    const isAudio = file.type.startsWith('audio/');
+    if (!isVideo && !isAudio) {
       return {
         isValid: false,
         mimeType: file.type,
@@ -95,16 +107,12 @@ export function validateVideoFile(file: File): {
 }
 
 /**
- * 批量验证视频文件
+ * 批量验证媒体文件
  */
 export function validateVideoFiles(files: File[]): {
   validFiles: File[];
   invalidFiles: { file: File; error: string }[];
-  summary: {
-    total: number;
-    valid: number;
-    invalid: number;
-  };
+  summary: { total: number; valid: number; invalid: number };
 } {
   const validFiles: File[] = [];
   const invalidFiles: { file: File; error: string }[] = [];
@@ -114,21 +122,14 @@ export function validateVideoFiles(files: File[]): {
     if (validation.isValid) {
       validFiles.push(file);
     } else {
-      invalidFiles.push({
-        file,
-        error: validation.error || '未知错误'
-      });
+      invalidFiles.push({ file, error: validation.error || '未知错误' });
     }
   });
 
   return {
     validFiles,
     invalidFiles,
-    summary: {
-      total: files.length,
-      valid: validFiles.length,
-      invalid: invalidFiles.length
-    }
+    summary: { total: files.length, valid: validFiles.length, invalid: invalidFiles.length }
   };
 }
 

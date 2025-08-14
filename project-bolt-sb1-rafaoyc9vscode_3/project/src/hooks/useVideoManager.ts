@@ -19,6 +19,7 @@ export function useVideoManager() {
   };
 
   const addVideo = (file: File, collectionId: string) => {
+    const isAudio = file.type.startsWith('audio/') || /\.(mp3|wav|m4a|aac|ogg|oga|flac)$/i.test(file.name);
     const newVideo: VideoFile = {
       id: generateUUID(),
       name: file.name.replace(/\.[^/.]+$/, ""),
@@ -30,7 +31,8 @@ export function useVideoManager() {
       collectionId,
       fileSize: file.size,
       mimeType: file.type,
-    };
+      mediaType: isAudio ? 'audio' : 'video'
+    } as any; // 兼容旧的 VideoFile 接口
 
     setVideos(prev => [...prev, newVideo]);
     return newVideo.id;
@@ -54,11 +56,12 @@ export function useVideoManager() {
       totalVideos,
       completedVideos,
       todayNewCount: 0,
-      todayAudioReviewCount: 0,
-      todayVideoReviewCount: 0,
+      todayReviewCount: 0,
       overallProgress: totalVideos > 0 ? Math.round((completedVideos / totalVideos) * 100) : 0,
       activeCollections: 0,
       canAddExtra: false,
+      todayAudioReviewCount: 0,
+      todayVideoReviewCount: 0,
     };
   };
 

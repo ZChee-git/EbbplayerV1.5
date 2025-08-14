@@ -296,10 +296,10 @@ export const VideoUpload: React.FC<VideoUploadProps> = ({
         >
           <Upload size={48} className={`mx-auto mb-4 ${isUploading ? 'text-gray-400' : 'text-blue-500'}`} />
           <p className={`text-lg md:text-xl mb-2 ${isUploading ? 'text-gray-500' : 'text-gray-600'}`}>
-            {isUploading ? '正在处理文件...' : '拖拽视频文件到这里或点击浏览'}
+            {isUploading ? '正在处理文件...' : '拖拽媒体文件到这里或点击浏览'}
           </p>
           <p className="text-sm text-gray-500 mb-4">
-            支持 MP4, AVI, MOV, WMV, MKV, WebM 等格式
+            支持 视频: MP4, AVI, MOV, MKV 等 | 音频: MP3, WAV, M4A, AAC, OGG, FLAC
           </p>
           <p className="text-sm text-blue-600 font-medium">
             将添加到：{activeCollections.find(c => c.id === selectedCollection)?.name}
@@ -308,7 +308,7 @@ export const VideoUpload: React.FC<VideoUploadProps> = ({
           <input
             ref={fileInputRef}
             type="file"
-            accept="video/*,.mp4,.avi,.mov,.wmv,.mkv,.webm,.flv,.m4v,.3gp,.ogv,.ts,.mts"
+            accept="video/*,audio/*,.mp4,.avi,.mov,.wmv,.mkv,.webm,.flv,.m4v,.3gp,.ogv,.ts,.mts,.mp3,.wav,.m4a,.aac,.ogg,.oga,.flac"
             multiple
             onChange={handleFileSelect}
             className="hidden"
@@ -318,7 +318,7 @@ export const VideoUpload: React.FC<VideoUploadProps> = ({
           <input
             ref={folderInputRef}
             type="file"
-            accept="video/*,.mp4,.avi,.mov,.wmv,.mkv,.webm,.flv,.m4v,.3gp,.ogv,.ts,.mts"
+            accept="video/*,audio/*,.mp4,.avi,.mov,.wmv,.mkv,.webm,.flv,.m4v,.3gp,.ogv,.ts,.mts,.mp3,.wav,.m4a,.aac,.ogg,.oga,.flac"
             multiple
             {...({ webkitdirectory: "" } as any)}
             onChange={handleFolderSelect}

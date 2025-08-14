@@ -34,7 +34,10 @@ export const VideoPlayer: React.FC<VideoPlayerProps> = ({
   const [videoError, setVideoError] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
   const [retryCount, setRetryCount] = useState(0);
-  const [audioOnlyMode] = useState(isAudioMode);
+  const currentItem = playlist[currentIndex];
+  const currentVideo = videos.find(v => v.id === currentItem?.videoId);
+  const derivedAudioMode = currentVideo?.mediaType === 'audio';
+  const [audioOnlyMode] = useState(isAudioMode || derivedAudioMode);
   const [userInteracted, setUserInteracted] = useState(false);
   const [showControls, setShowControls] = useState(true);
   const [controlsTimeout, setControlsTimeout] = useState<number | null>(null);
@@ -42,9 +45,6 @@ export const VideoPlayer: React.FC<VideoPlayerProps> = ({
 
   // 使用 useRef 来避免 autoPlay 状态导致的重新渲染
   const autoPlayRef = useRef(true);
-
-  const currentItem = playlist[currentIndex];
-  const currentVideo = videos.find(v => v.id === currentItem?.videoId);
 
   // 检测设备和浏览器
   const isIOS = /iPad|iPhone|iPod/.test(navigator.userAgent);

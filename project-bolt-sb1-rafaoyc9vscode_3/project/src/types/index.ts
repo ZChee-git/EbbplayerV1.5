@@ -14,6 +14,7 @@ export interface VideoFile {
   duration?: number; // 视频时长(秒)
   fileSize?: number; // 文件大小(字节)
   mimeType?: string; // MIME类型
+  mediaType?: 'video' | 'audio'; // 新增：媒体类型
 }
 
 export interface Collection {
@@ -53,6 +54,9 @@ export interface LearningStats {
   overallProgress: number;
   activeCollections: number;
   canAddExtra: boolean;
+  // 新增：区分音频/视频复习计数（可选）
+  todayAudioReviewCount?: number;
+  todayVideoReviewCount?: number;
 }
 
 export interface PlaylistPreview {
