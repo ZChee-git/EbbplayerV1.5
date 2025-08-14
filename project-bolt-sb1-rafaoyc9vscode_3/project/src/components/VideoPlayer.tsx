@@ -34,18 +34,10 @@ export const VideoPlayer: React.FC<VideoPlayerProps> = ({
   const [videoError, setVideoError] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
   const [retryCount, setRetryCount] = useState(0);
-  const [audioOnlyMode, setAudioOnlyMode] = useState(isAudioMode);
+  const [audioOnlyMode] = useState(isAudioMode);
   const [userInteracted, setUserInteracted] = useState(false);
   const [showControls, setShowControls] = useState(true);
   const [controlsTimeout, setControlsTimeout] = useState<number | null>(null);
-  const [isMuted, setIsMuted] = useState(false);
-  const [castSupported, setCastSupported] = useState(false);
-  const [castError, setCastError] = useState('');
-  const [isCasting, setIsCasting] = useState(false);
-  const [showCastMenu, setShowCastMenu] = useState(false);
-  const [castDevices, setCastDevices] = useState<any[]>([]);
-  const [isSearchingDevices, setIsSearchingDevices] = useState(false);
-  const [showPlaylist, setShowPlaylist] = useState(false);
   const videoRef = useRef<HTMLVideoElement>(null);
 
   // 使用 useRef 来避免 autoPlay 状态导致的重新渲染
@@ -57,9 +49,6 @@ export const VideoPlayer: React.FC<VideoPlayerProps> = ({
   // 检测设备和浏览器
   const isIOS = /iPad|iPhone|iPod/.test(navigator.userAgent);
   const isSafari = /Safari/.test(navigator.userAgent) && !/Chrome/.test(navigator.userAgent);
-  const isAndroid = /Android/.test(navigator.userAgent);
-  const androidVersion = isAndroid ? parseFloat(navigator.userAgent.match(/Android (\d+\.\d+)/)?.[1] || '0') : 0;
-  const chromeVersion = /Chrome\/(\d+)/.test(navigator.userAgent) ? parseInt(navigator.userAgent.match(/Chrome\/(\d+)/)?.[1] || '0') : 0;
 
   // 监听用户交互
   useEffect(() => {
@@ -161,86 +150,8 @@ export const VideoPlayer: React.FC<VideoPlayerProps> = ({
     }
   }, [currentIndex, currentVideo, audioOnlyMode, userInteracted]);
 
-  // 检测投屏支持
-  useEffect(() => {
-    const checkCastSupport = () => {
-      let supported = false;
-      let errorMsg = '';
-
-      // iOS AirPlay 检测 - 更准确的检测方法
-      if (isIOS) {
-        // 检查是否为 Safari 浏览器
-        if (!isSafari) {
-          errorMsg = 'iOS 设备需要使用 Safari 浏览器才能支持 AirPlay 投屏';
-        } else {
-          // 检查 AirPlay 支持
-          const video = document.createElement('video');
-          if ('webkitShowPlaybackTargetPicker' in video) {
-            supported = true;
-          } else {
-            errorMsg = '当前 iOS 版本或 Safari 版本不支持 AirPlay';
-          }
-        }
-      }
-      // Android Chromecast 检测
-      else if (isAndroid) {
-        if (androidVersion < 5.0) {
-          errorMsg = `Android ${androidVersion} 版本过低，需要 Android 5.0+ 才能支持投屏`;
-        } else if (chromeVersion < 66) {
-          errorMsg = `Chrome ${chromeVersion} 版本过低，需要 Chrome 66+ 才能支持投屏`;
-        } else if ('presentation' in navigator && 'PresentationRequest' in window) {
-          supported = true;
-        } else {
-          errorMsg = '当前浏览器不支持 Chromecast 投屏功能';
-        }
-      }
-      // 桌面浏览器
-      else {
-        if (videoRef.current && 'remote' in videoRef.current) {
-          supported = true;
-        } else {
-          errorMsg = '当前浏览器不支持远程播放功能';
-        }
-      }
-
-      setCastSupported(supported);
-      setCastError(errorMsg);
-    };
-
-    checkCastSupport();
-  }, [isIOS, isAndroid, isSafari, androidVersion, chromeVersion]);
-
-  // 检测投屏设备连接状态
-  useEffect(() => {
-    const detectCastDevices = async () => {
-      try {
-        // 检测 Remote Playback API (桌面浏览器)
-        if (videoRef.current && 'remote' in videoRef.current) {
-          const remote = (videoRef.current as any).remote;
-          
-          remote.addEventListener('connect', () => {
-            setIsCasting(true);
-            console.log('Connected to remote device');
-          });
-          
-          remote.addEventListener('disconnect', () => {
-            setIsCasting(false);
-            console.log('Disconnected from remote device');
-          });
-        }
-      } catch (error) {
-        console.log('Cast detection not supported:', error);
-      }
-    };
-
-    if (castSupported) {
-      detectCastDevices();
-    }
-  }, [castSupported]);
-
   // 控制栏自动隐藏逻辑
   const hideControlsAfterDelay = () => {
-    // 在音频模式下不自动隐藏工具栏，始终保持显示
     if (audioOnlyMode) {
       if (controlsTimeout) {
         clearTimeout(controlsTimeout);
@@ -273,29 +184,21 @@ export const VideoPlayer: React.FC<VideoPlayerProps> = ({
     }
   };
 
-  const toggleMute = () => {
+  const handleTimeUpdate = () => {
     if (videoRef.current) {
-      videoRef.current.muted = !isMuted;
-      setIsMuted(!isMuted);
+      setCurrentTime(videoRef.current.currentTime);
     }
   };
 
-  const toggleFullscreen = () => {
-    if (videoRef.current && !audioOnlyMode) {
-      if (document.fullscreenElement) {
-        document.exitFullscreen();
-      } else {
-        videoRef.current.requestFullscreen().catch(error => {
-          console.error('Fullscreen failed:', error);
-        });
-      }
+  const handleSeek = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const time = parseFloat(e.target.value);
+    if (videoRef.current) {
+      videoRef.current.currentTime = time;
+      setCurrentTime(time);
     }
   };
 
-  const toggleVideoMode = () => {
-    setAudioOnlyMode(!audioOnlyMode);
-  };
-
+  // 恢复前进/后退与时间格式化函数
   const goToNext = () => {
     if (currentIndex < playlist.length - 1) {
       setCurrentIndex(currentIndex + 1);
@@ -314,25 +217,10 @@ export const VideoPlayer: React.FC<VideoPlayerProps> = ({
     }
   };
 
-  const jumpToItem = (index: number) => {
-    setCurrentIndex(index);
-    setIsPlaying(false);
-    setShowPlaylist(false);
-    setVideoError(false);
-  };
-
-  const handleTimeUpdate = () => {
-    if (videoRef.current) {
-      setCurrentTime(videoRef.current.currentTime);
-    }
-  };
-
-  const handleSeek = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const time = parseFloat(e.target.value);
-    if (videoRef.current) {
-      videoRef.current.currentTime = time;
-      setCurrentTime(time);
-    }
+  const formatTime = (time: number) => {
+    const minutes = Math.floor(time / 60);
+    const seconds = Math.floor(time % 60);
+    return `${minutes}:${seconds.toString().padStart(2, '0')}`;
   };
 
   const handleVideoEnded = () => {
@@ -373,187 +261,6 @@ export const VideoPlayer: React.FC<VideoPlayerProps> = ({
     }
   };
 
-  const searchCastDevices = async () => {
-    if (!castSupported) {
-      return;
-    }
-
-    setIsSearchingDevices(true);
-    setCastDevices([]);
-    
-    try {
-      await new Promise(resolve => setTimeout(resolve, 1000)); // 增加搜索时间
-      
-      // iOS AirPlay 检测
-      if (isIOS && isSafari) {
-        // 检查当前视频元素是否支持 AirPlay
-        if (videoRef.current && 'webkitShowPlaybackTargetPicker' in videoRef.current) {
-          setCastDevices([{ 
-            id: 'airplay', 
-            name: 'AirPlay 设备', 
-            type: 'airplay',
-            available: true 
-          }]);
-        } else {
-          setCastDevices([]);
-        }
-      }
-      // Android Chrome Cast 检测
-      else if (isAndroid && 'presentation' in navigator && 'PresentationRequest' in window) {
-        try {
-          const presentationUrls = [
-            'https://www.gstatic.com/cv/receiver.html',
-            'https://cast.google.com/publish/chromecast/sku/receiver'
-          ];
-          const presentationRequest = new (window as any).PresentationRequest(presentationUrls);
-          
-          // 尝试获取可用性
-          const availability = await presentationRequest.getAvailability();
-          if (availability && availability.value) {
-            setCastDevices([{ 
-              id: 'chromecast', 
-              name: 'Chromecast 设备', 
-              type: 'chromecast',
-              available: true,
-              presentationRequest 
-            }]);
-          } else {
-            console.log('No Chromecast devices available');
-          }
-        } catch (error) {
-          console.log('Chromecast detection failed:', error);
-          // 即使检测失败，也提供一个选项让用户尝试
-          setCastDevices([{ 
-            id: 'chromecast-fallback', 
-            name: 'Chromecast (尝试连接)', 
-            type: 'chromecast-fallback',
-            available: false 
-          }]);
-        }
-      }
-      // 桌面浏览器的 Remote Playback API
-      else if (videoRef.current && 'remote' in videoRef.current) {
-        const remote = (videoRef.current as any).remote;
-        if (remote.state === 'disconnected') {
-          setCastDevices([{ 
-            id: 'remote', 
-            name: '远程播放设备', 
-            type: 'remote',
-            available: true 
-          }]);
-        }
-      }
-    } catch (error) {
-      console.error('Error searching for cast devices:', error);
-    } finally {
-      setIsSearchingDevices(false);
-    }
-  };
-
-  const handleCast = async (device: any) => {
-    try {
-      if (device.type === 'airplay' && videoRef.current && 'webkitShowPlaybackTargetPicker' in videoRef.current) {
-        // iOS AirPlay - 需要用户手势触发
-        try {
-          (videoRef.current as any).webkitShowPlaybackTargetPicker();
-          // 注意：AirPlay 连接状态无法直接检测，所以不设置 isCasting
-          console.log('AirPlay picker shown');
-        } catch (error) {
-          console.error('AirPlay picker failed:', error);
-          alert('AirPlay 启动失败\n\n请确保：\n• 使用 Safari 浏览器\n• AirPlay 设备已开启\n• 设备在同一 WiFi 网络');
-        }
-      } else if (device.type === 'chromecast' && device.presentationRequest) {
-        // Android Chromecast
-        try {
-          const connection = await device.presentationRequest.start();
-          setIsCasting(true);
-          
-          connection.addEventListener('close', () => {
-            setIsCasting(false);
-          });
-          
-          connection.addEventListener('terminate', () => {
-            setIsCasting(false);
-          });
-        } catch (error) {
-          console.error('Chromecast connection failed:', error);
-          alert('连接 Chromecast 失败，请确保：\n1. Chromecast 设备已开启\n2. 手机和 Chromecast 在同一 WiFi 网络\n3. Chrome 浏览器版本为最新');
-        }
-      } else if (device.type === 'chromecast-fallback') {
-        // 备用 Chromecast 连接方式
-        try {
-          const presentationUrls = ['https://www.gstatic.com/cv/receiver.html'];
-          const presentationRequest = new (window as any).PresentationRequest(presentationUrls);
-          const connection = await presentationRequest.start();
-          setIsCasting(true);
-          
-          connection.addEventListener('close', () => {
-            setIsCasting(false);
-          });
-        } catch (error) {
-          console.error('Fallback Chromecast failed:', error);
-          alert('投屏连接失败\n\n可能的原因：\n• 没有找到 Chromecast 设备\n• 设备不在同一网络\n• 浏览器版本不支持\n\n建议：\n• 确保 Chromecast 已连接到同一 WiFi\n• 更新 Chrome 浏览器到最新版本\n• 重启 Chromecast 设备');
-        }
-      } else if (device.type === 'remote' && videoRef.current && 'remote' in videoRef.current) {
-        // Remote Playback API
-        const remote = (videoRef.current as any).remote;
-        await remote.prompt();
-        setIsCasting(true);
-      }
-    } catch (error) {
-      console.error('Cast error:', error);
-      alert('投屏连接失败，请重试');
-    }
-    setShowCastMenu(false);
-  };
-
-  const disconnectCast = async () => {
-    try {
-      if (videoRef.current && 'remote' in videoRef.current) {
-        const remote = (videoRef.current as any).remote;
-        if (remote.state === 'connected') {
-          await remote.disconnect();
-        }
-      }
-      setIsCasting(false);
-    } catch (error) {
-      console.error('Disconnect cast error:', error);
-    }
-    setShowCastMenu(false);
-  };
-
-  const formatTime = (time: number) => {
-    const minutes = Math.floor(time / 60);
-    const seconds = Math.floor(time % 60);
-    return `${minutes}:${seconds.toString().padStart(2, '0')}`;
-  };
-
-  const getTypeText = (type: string) => {
-    switch (type) {
-      case 'new': return '新学习';
-      case 'audio': return '音频复习';
-      case 'video': return '视频复习';
-      default: return '未知';
-    }
-  };
-
-  const getTypeColor = (type: string) => {
-    switch (type) {
-      case 'new': return 'text-green-600';
-      case 'audio': return 'text-yellow-600';
-      case 'video': return 'text-purple-600';
-      default: return 'text-gray-600';
-    }
-  };
-
-  const getReviewMessage = () => {
-    if (currentItem.reviewType === 'video' && currentItem.reviewNumber >= 4) {
-      return `第${currentItem.reviewNumber}/5次复习，建议观看`;
-    }
-    return null;
-  };
-
-  // 处理返回按钮
   const handleClose = () => {
     if (window.history.length > 1) {
       window.history.pushState(null, '', window.location.href);
@@ -592,8 +299,6 @@ export const VideoPlayer: React.FC<VideoPlayerProps> = ({
       </div>
     );
   }
-
-  const reviewMessage = getReviewMessage();
 
   return (
     <div className="fixed inset-0 bg-black flex items-center justify-center z-50">
@@ -680,7 +385,7 @@ export const VideoPlayer: React.FC<VideoPlayerProps> = ({
           </>
         )}
         
-        {/* Controls Overlay - 只在需要时显示 */}
+        {/* Controls Overlay - 音频模式下常显 */}
         {!videoError && (showControls || audioOnlyMode) && (
           <div className="absolute bottom-0 left-0 right-0 bg-gradient-to-t from-black/80 to-transparent p-6">
             {/* Progress Bar */}
