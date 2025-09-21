@@ -84,8 +84,8 @@ export const VideoLibrary: React.FC<VideoLibraryProps> = ({ videos, collections,
         
         <div className="text-center py-12">
           <BookOpen size={64} className="mx-auto text-gray-400 mb-4" />
-          <p className="text-xl text-gray-600 mb-2">视频库为空</p>
-          <p className="text-gray-500">请先上传一些视频文件开始学习</p>
+          <p className="text-xl text-gray-600 mb-2">媒体库为空</p>
+          <p className="text-gray-500">请先上传一些音视频文件开始学习</p>
         </div>
       </div>
     );

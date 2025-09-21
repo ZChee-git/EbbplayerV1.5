@@ -333,7 +333,7 @@ export const VideoUpload: React.FC<VideoUploadProps> = ({
             请先选择一个合辑
           </p>
           <p className="text-sm text-gray-400">
-            选择合辑后即可上传视频文件
+            选择合辑后即可上传音视频文件
           </p>
         </div>
       )}
@@ -346,7 +346,7 @@ export const VideoUpload: React.FC<VideoUploadProps> = ({
             className="bg-blue-600 hover:bg-blue-700 text-white px-6 py-3 rounded-lg font-semibold flex items-center justify-center transition-colors shadow-md hover:shadow-lg"
           >
             <Plus size={20} className="mr-2" />
-            选择视频文件
+            选择音视频
           </button>
           
           <button
