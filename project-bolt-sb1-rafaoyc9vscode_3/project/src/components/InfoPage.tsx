@@ -57,17 +57,16 @@ const InfoPage: React.FC<{ onBack: () => void }> = ({ onBack }) => {
               {status === 'activated' ? expireText : status}
             </span>
           </div>
-          <div>微信：搜索shangX</div>
           <div>电邮：zero14@qq.com</div>
           <div style={{marginTop: '1em'}}>
-            详细使用说明点击以下链接<br />
+            详细使用说明查看微信公众号 @肆张Pakhoi<br />
             <a
-              href="https://Ebbplayer-guide.netlify.app"
+              href="https://mp.weixin.qq.com/s/QJwRsNMuU9jyBrXR83g1Ew"
               target="_blank"
               rel="noopener noreferrer"
               style={{ color: '#2563eb', textDecoration: 'underline' }}
             >
-              https://Ebbplayer-guide.netlify.app
+              https://mp.weixin.qq.com/s/QJwRsNMuU9jyBrXR83g1Ew
             </a>
           </div>
         </div>

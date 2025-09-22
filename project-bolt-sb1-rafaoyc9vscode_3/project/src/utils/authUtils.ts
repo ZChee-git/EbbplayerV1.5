@@ -40,6 +40,30 @@ export function saveVideoPlayHistory(item: VideoHistoryItem) {
   localStorage.setItem(VIDEO_HISTORY_KEY, JSON.stringify(history));
 }
 
+// 获取单个视频的播放进度
+export function getVideoPlayProgress(videoId: string): number {
+  const history = getVideoPlayHistory();
+  const item = history.find(h => h.videoId === videoId);
+  return item?.lastPlayedTime || 0;
+}
+
+// 保存单个视频的播放进度
+export function saveVideoPlayProgress(videoId: string, title: string, currentTime: number) {
+  saveVideoPlayHistory({
+    videoId,
+    title,
+    lastPlayedTime: currentTime,
+    lastPlayedDate: Date.now()
+  });
+}
+
+// 清除单个视频的播放进度（播放完成时调用）
+export function clearVideoPlayProgress(videoId: string) {
+  let history = getVideoPlayHistory();
+  history = history.filter(h => h.videoId !== videoId);
+  localStorage.setItem(VIDEO_HISTORY_KEY, JSON.stringify(history));
+}
+
 // 清空播放历史
 export function clearVideoPlayHistory() {
   localStorage.removeItem(VIDEO_HISTORY_KEY);

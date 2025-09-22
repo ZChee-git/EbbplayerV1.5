@@ -1,6 +1,7 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { Play, Pause, SkipForward, SkipBack, X, AlertCircle } from 'lucide-react';
 import { PlaylistItem, VideoFile } from '../types';
+import { getVideoPlayProgress, saveVideoPlayProgress, clearVideoPlayProgress } from '../utils/authUtils';
 
 interface VideoPlayerProps {
   playlist: PlaylistItem[];
@@ -26,14 +27,17 @@ export const VideoPlayer: React.FC<VideoPlayerProps> = ({
   const [videoError, setVideoError] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
   const [retryCount, setRetryCount] = useState(0);
-  const [audioOnlyMode, setAudioOnlyMode] = useState(isAudioMode);
   const [userInteracted, setUserInteracted] = useState(false);
   const [showControls, setShowControls] = useState(true);
   const [controlsTimeout, setControlsTimeout] = useState<number | null>(null);
+  const [showResumePrompt, setShowResumePrompt] = useState(false);
+  const [resumeTime, setResumeTime] = useState(0);
   const videoRef = useRef<HTMLVideoElement>(null);
 
   const currentItem = playlist[currentIndex];
   const currentVideo = videos.find(v => v.id === currentItem?.videoId);
+  const derivedAudioMode = currentVideo?.mediaType === 'audio';
+  const audioOnlyMode = isAudioMode || derivedAudioMode;
 
   // 检测设备和浏览器
   const isIOS = /iPad|iPhone|iPod/.test(navigator.userAgent);
@@ -85,6 +89,8 @@ export const VideoPlayer: React.FC<VideoPlayerProps> = ({
       setVideoError(false);
       setIsLoading(true);
       setRetryCount(0);
+      setShowResumePrompt(false); // 重置恢复提示
+      setResumeTime(0); // 重置恢复时间
       
       const video = videoRef.current;
       video.src = '';
@@ -107,6 +113,13 @@ export const VideoPlayer: React.FC<VideoPlayerProps> = ({
       
       const handleLoadedMetadata = () => {
         setDuration(video.duration);
+        
+        // 检查是否有播放进度需要恢复
+        const savedProgress = getVideoPlayProgress(currentVideo.id);
+        if (savedProgress > 10 && savedProgress < video.duration - 10) { // 至少播放了10秒且不在最后10秒
+          setResumeTime(savedProgress);
+          setShowResumePrompt(true);
+        }
       };
 
       const handleCanPlay = () => {
@@ -161,8 +174,14 @@ export const VideoPlayer: React.FC<VideoPlayerProps> = ({
   };
 
   const handleTimeUpdate = () => {
-    if (videoRef.current) {
-      setCurrentTime(videoRef.current.currentTime);
+    if (videoRef.current && currentVideo) {
+      const currentTime = videoRef.current.currentTime;
+      setCurrentTime(currentTime);
+      
+      // 每5秒保存一次播放进度
+      if (Math.floor(currentTime) % 5 === 0 && currentTime > 0) {
+        saveVideoPlayProgress(currentVideo.id, currentVideo.name, currentTime);
+      }
     }
   };
 
@@ -170,6 +189,23 @@ export const VideoPlayer: React.FC<VideoPlayerProps> = ({
     const minutes = Math.floor(time / 60);
     const seconds = Math.floor(time % 60);
     return `${minutes}:${seconds.toString().padStart(2, '0')}`;
+  };
+
+  const resumePlayback = () => {
+    if (videoRef.current && resumeTime > 0) {
+      videoRef.current.currentTime = resumeTime;
+      setCurrentTime(resumeTime);
+    }
+    setShowResumePrompt(false);
+    showControlsTemporarily();
+  };
+
+  const startFromBeginning = () => {
+    if (currentVideo) {
+      clearVideoPlayProgress(currentVideo.id);
+    }
+    setShowResumePrompt(false);
+    showControlsTemporarily();
   };
 
   const goToPrevious = () => {
@@ -180,6 +216,11 @@ export const VideoPlayer: React.FC<VideoPlayerProps> = ({
   };
 
   const goToNext = () => {
+    // 清除当前视频的播放进度
+    if (currentVideo) {
+      clearVideoPlayProgress(currentVideo.id);
+    }
+    
     if (currentIndex < playlist.length - 1) {
       setCurrentIndex(currentIndex + 1);
     } else {
@@ -189,6 +230,11 @@ export const VideoPlayer: React.FC<VideoPlayerProps> = ({
   };
 
   const handleVideoEnded = () => {
+    // 清除当前视频的播放进度（播放完成）
+    if (currentVideo) {
+      clearVideoPlayProgress(currentVideo.id);
+    }
+    
     if (currentIndex < playlist.length - 1) {
       setCurrentIndex(currentIndex + 1);
     } else {
@@ -273,6 +319,32 @@ export const VideoPlayer: React.FC<VideoPlayerProps> = ({
                 <div className="text-white text-center">
                   <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-white mx-auto mb-4"></div>
                   <p>正在加载视频...</p>
+                </div>
+              </div>
+            )}
+            
+            {/* 断点续播提示 */}
+            {showResumePrompt && (
+              <div className="absolute inset-0 bg-black bg-opacity-75 flex items-center justify-center z-20">
+                <div className="bg-white rounded-lg p-6 max-w-md mx-4 text-center">
+                  <h3 className="text-lg font-semibold mb-4 text-gray-800">断点续播</h3>
+                  <p className="text-gray-600 mb-6">
+                    检测到上次播放进度：{formatTime(resumeTime)}
+                  </p>
+                  <div className="flex space-x-4">
+                    <button
+                      onClick={resumePlayback}
+                      className="flex-1 bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg font-medium"
+                    >
+                      继续播放
+                    </button>
+                    <button
+                      onClick={startFromBeginning}
+                      className="flex-1 bg-gray-600 hover:bg-gray-700 text-white px-4 py-2 rounded-lg font-medium"
+                    >
+                      从头开始
+                    </button>
+                  </div>
                 </div>
               </div>
             )}
