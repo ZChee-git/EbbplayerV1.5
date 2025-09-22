@@ -44,11 +44,14 @@ export function saveVideoPlayHistory(item: VideoHistoryItem) {
 export function getVideoPlayProgress(videoId: string): number {
   const history = getVideoPlayHistory();
   const item = history.find(h => h.videoId === videoId);
-  return item?.lastPlayedTime || 0;
+  const progress = item?.lastPlayedTime || 0;
+  console.log(`[authUtils] 获取播放进度 - videoId: ${videoId}, progress: ${progress}秒`);
+  return progress;
 }
 
 // 保存单个视频的播放进度
 export function saveVideoPlayProgress(videoId: string, title: string, currentTime: number) {
+  console.log(`[authUtils] 保存播放进度 - videoId: ${videoId}, title: ${title}, time: ${currentTime.toFixed(1)}秒`);
   saveVideoPlayHistory({
     videoId,
     title,
@@ -59,6 +62,7 @@ export function saveVideoPlayProgress(videoId: string, title: string, currentTim
 
 // 清除单个视频的播放进度（播放完成时调用）
 export function clearVideoPlayProgress(videoId: string) {
+  console.log(`[authUtils] 清除播放进度 - videoId: ${videoId}`);
   let history = getVideoPlayHistory();
   history = history.filter(h => h.videoId !== videoId);
   localStorage.setItem(VIDEO_HISTORY_KEY, JSON.stringify(history));

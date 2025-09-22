@@ -33,6 +33,7 @@ export const VideoPlayer: React.FC<VideoPlayerProps> = ({
   const [showResumePrompt, setShowResumePrompt] = useState(false);
   const [resumeTime, setResumeTime] = useState(0);
   const videoRef = useRef<HTMLVideoElement>(null);
+  const lastSaveTimeRef = useRef<number>(0);
 
   const currentItem = playlist[currentIndex];
   const currentVideo = videos.find(v => v.id === currentItem?.videoId);
@@ -89,8 +90,7 @@ export const VideoPlayer: React.FC<VideoPlayerProps> = ({
       setVideoError(false);
       setIsLoading(true);
       setRetryCount(0);
-      setShowResumePrompt(false); // 重置恢复提示
-      setResumeTime(0); // 重置恢复时间
+      // 不在这里重置恢复提示状态，让 handleLoadedMetadata 来处理
       
       const video = videoRef.current;
       video.src = '';
@@ -114,11 +114,26 @@ export const VideoPlayer: React.FC<VideoPlayerProps> = ({
       const handleLoadedMetadata = () => {
         setDuration(video.duration);
         
+        // 重置保存时间计时器
+        lastSaveTimeRef.current = 0;
+        
         // 检查是否有播放进度需要恢复
         const savedProgress = getVideoPlayProgress(currentVideo.id);
+        console.log(`[断点续播] 视频 ${currentVideo.name}:`, {
+          videoId: currentVideo.id,
+          savedProgress,
+          duration: video.duration,
+          shouldShow: savedProgress > 10 && savedProgress < video.duration - 10
+        });
+        
         if (savedProgress > 10 && savedProgress < video.duration - 10) { // 至少播放了10秒且不在最后10秒
           setResumeTime(savedProgress);
           setShowResumePrompt(true);
+          console.log(`[断点续播] 显示恢复提示，时间: ${savedProgress}秒`);
+        } else {
+          setShowResumePrompt(false);
+          setResumeTime(0);
+          console.log(`[断点续播] 不显示恢复提示`);
         }
       };
 
@@ -178,9 +193,14 @@ export const VideoPlayer: React.FC<VideoPlayerProps> = ({
       const currentTime = videoRef.current.currentTime;
       setCurrentTime(currentTime);
       
-      // 每5秒保存一次播放进度
-      if (Math.floor(currentTime) % 5 === 0 && currentTime > 0) {
-        saveVideoPlayProgress(currentVideo.id, currentVideo.name, currentTime);
+      // 使用时间间隔保存播放进度，避免依赖精确的整数秒
+      const now = Date.now();
+      if (!lastSaveTimeRef.current || now - lastSaveTimeRef.current >= 5000) { // 每5秒保存一次
+        if (currentTime > 0) {
+          saveVideoPlayProgress(currentVideo.id, currentVideo.name, currentTime);
+          lastSaveTimeRef.current = now;
+          console.log(`[断点续播] 保存播放进度: ${currentVideo.name} -> ${currentTime.toFixed(1)}秒`);
+        }
       }
     }
   };
@@ -195,6 +215,7 @@ export const VideoPlayer: React.FC<VideoPlayerProps> = ({
     if (videoRef.current && resumeTime > 0) {
       videoRef.current.currentTime = resumeTime;
       setCurrentTime(resumeTime);
+      console.log(`[断点续播] 恢复播放至: ${resumeTime.toFixed(1)}秒`);
     }
     setShowResumePrompt(false);
     showControlsTemporarily();
@@ -203,6 +224,7 @@ export const VideoPlayer: React.FC<VideoPlayerProps> = ({
   const startFromBeginning = () => {
     if (currentVideo) {
       clearVideoPlayProgress(currentVideo.id);
+      console.log(`[断点续播] 从头开始播放，清除进度记录`);
     }
     setShowResumePrompt(false);
     showControlsTemporarily();

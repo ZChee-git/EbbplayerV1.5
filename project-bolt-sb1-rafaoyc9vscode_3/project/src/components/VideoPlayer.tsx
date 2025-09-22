@@ -45,6 +45,7 @@ export const VideoPlayer: React.FC<VideoPlayerProps> = ({
   const [showResumePrompt, setShowResumePrompt] = useState(false);
   const [resumeTime, setResumeTime] = useState(0);
   const videoRef = useRef<HTMLVideoElement>(null);
+  const lastSaveTimeRef = useRef<number>(0);
 
   // 使用 useRef 来避免 autoPlay 状态导致的重新渲染
   const autoPlayRef = useRef(true);
@@ -75,8 +76,7 @@ export const VideoPlayer: React.FC<VideoPlayerProps> = ({
       setVideoError(false);
       setIsLoading(true);
       setRetryCount(0);
-      setShowResumePrompt(false); // 重置恢复提示
-      setResumeTime(0); // 重置恢复时间
+      // 不在这里重置恢复提示状态，让 handleLoadedMetadata 来处理
       
       // 重置视频元素
       const video = videoRef.current;
@@ -107,11 +107,17 @@ export const VideoPlayer: React.FC<VideoPlayerProps> = ({
         setIsLoading(false);
         setDuration(video.duration);
         
+        // 重置保存时间计时器
+        lastSaveTimeRef.current = 0;
+        
         // 检查是否有播放进度需要恢复
         const savedProgress = getVideoPlayProgress(currentVideo.id);
         if (savedProgress > 10 && savedProgress < video.duration - 10) { // 至少播放了10秒且不在最后10秒
           setResumeTime(savedProgress);
           setShowResumePrompt(true);
+        } else {
+          setShowResumePrompt(false);
+          setResumeTime(0);
         }
       };
 
@@ -201,9 +207,13 @@ export const VideoPlayer: React.FC<VideoPlayerProps> = ({
       const currentTime = videoRef.current.currentTime;
       setCurrentTime(currentTime);
       
-      // 每5秒保存一次播放进度
-      if (Math.floor(currentTime) % 5 === 0 && currentTime > 0) {
-        saveVideoPlayProgress(currentVideo.id, currentVideo.name, currentTime);
+      // 使用时间间隔保存播放进度，避免依赖精确的整数秒
+      const now = Date.now();
+      if (!lastSaveTimeRef.current || now - lastSaveTimeRef.current >= 5000) { // 每5秒保存一次
+        if (currentTime > 0) {
+          saveVideoPlayProgress(currentVideo.id, currentVideo.name, currentTime);
+          lastSaveTimeRef.current = now;
+        }
       }
     }
   };
