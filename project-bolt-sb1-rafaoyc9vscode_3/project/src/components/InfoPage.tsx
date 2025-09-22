@@ -58,13 +58,18 @@ const InfoPage: React.FC<{ onBack: () => void }> = ({ onBack }) => {
             </span>
           </div>
           <div>电邮：zero14@qq.com</div>
-          <div style={{marginTop: '1em'}}>
+          <div style={{marginTop: '1em', wordWrap: 'break-word', overflow: 'hidden'}}>
             详细使用说明查看微信公众号 @肆张Pakhoi<br />
             <a
               href="https://mp.weixin.qq.com/s/QJwRsNMuU9jyBrXR83g1Ew"
               target="_blank"
               rel="noopener noreferrer"
-              style={{ color: '#2563eb', textDecoration: 'underline' }}
+              style={{ 
+                color: '#2563eb', 
+                textDecoration: 'underline',
+                wordBreak: 'break-all',
+                lineHeight: '1.4'
+              }}
             >
               https://mp.weixin.qq.com/s/QJwRsNMuU9jyBrXR83g1Ew
             </a>
